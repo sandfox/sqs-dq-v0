@@ -1,0 +1,20 @@
+{
+  "name": "sqs-dq-v0",
+  "version": "1.0.0",
+  "description": "An SQS dequeur/worker",
+  "main": "Processor.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "SQS",
+    "AWS"
+  ],
+  "author": "sandfox",
+  "license": "ISC",
+  "dependencies": {
+    "async": "^0.9.0",
+    "aws-sdk": "^2.0.17",
+    "lodash": "^2.4.1"
+  }
+}
