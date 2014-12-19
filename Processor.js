@@ -26,6 +26,7 @@
 var aws = require('aws-sdk');
 var async = require('async');
 var _ = require('lodash');
+var debug = require('debug')('sqs-dq-v0');
 
 var messageStates = [
   "recieved",
@@ -86,7 +87,7 @@ Processor.prototype.start = function() {
     },
     function(err){
       //log that we are stopping reaping messages
-      console.log("STOPPED REAPING")
+      debug("STOPPED REAPING")
     }
     )
 
@@ -123,7 +124,7 @@ Processor.prototype._reap = function(cb){
     }, function(err, data){
       if(err){
         // should probably log this somewhere
-        console.log(err);
+        debug(err.name, err.message);
         return cb();
       }
       // scan each message we have, if it's id is in the list of successfully
@@ -158,7 +159,7 @@ Processor.prototype._fetch = function(numRecords, cb) {
 
     //What should we do on poll error?
     if (err) {
-      console.log(err, err.stack);
+      debug(err.name, err.message);
       return cb();
     }
 
@@ -173,7 +174,7 @@ Processor.prototype._fetch = function(numRecords, cb) {
         that._messages.push(message)
         // add into async.q, and upon finishing proccessing, setState to awaiting deletion
         that._q.push(message.Body, function(){
-          console.log("MARKING FOR REAPING:", message.MessageId)
+          debug("MARKING FOR REAPING:", message.MessageId)
           message.state = "awaitingDeletion"
         })
       })
