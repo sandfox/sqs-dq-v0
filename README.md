@@ -46,8 +46,16 @@ var datQueueProcessor = new DeQueue(
   );
 
 
+//Emitted if any error during fetch loop
+datQueueProcessor.on('fetchError', function(err){});
 
+//Emitted if any error during reap loop
+datQueueProcessor.on('reapError', function(err){});
+
+//Emitted if any error during message deletion
+datQueueProcessor.on('deletionError', function(err){});
 
 datQueueProcessor.start(myWorker);
 
 ```
+

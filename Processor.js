@@ -19,10 +19,11 @@
  + error emitter
 
   TODO: replace reap with async cargo worker
-  TODO: Logging and error emitting
+  TODO: Logging and error `§emitting
   TODO: 
 */
-
+var util = require("util");
+var events = require("events");
 var aws = require('aws-sdk');
 var async = require('async');
 var _ = require('lodash');
@@ -54,6 +55,7 @@ var Processor = module.exports = function(queueUrl, opts, worker) {
 
 }
 
+util.inherits(Processor, events.EventEmitter);
 
 Processor.prototype.start = function() {
   
@@ -75,6 +77,14 @@ Processor.prototype.start = function() {
     },
     function(err){
       //log that we are stopping checking for messages
+      if(err){
+        debug("STOPPED FETCHING DUE TO ERROR")
+        debug(err.name, err.message);
+        that.emit('reapError', err);
+        return;
+      }
+
+      debug("STOPPED FETCHING");
     }
 
     )
@@ -87,7 +97,14 @@ Processor.prototype.start = function() {
     },
     function(err){
       //log that we are stopping reaping messages
-      debug("STOPPED REAPING")
+      if(err){
+        debug("STOPPED REAPING DUE TO ERROR")
+        debug(err.name, err.message);
+        that.emit('fetchError', err);
+        return;
+      }
+
+      debug("STOPPED REAPING");
     }
     )
 
@@ -124,7 +141,9 @@ Processor.prototype._reap = function(cb){
     }, function(err, data){
       if(err){
         // should probably log this somewhere
+        debug("MESSAGE DELETION ERROR");
         debug(err.name, err.message);
+        that.emit('deletionError', err);
         return cb();
       }
       // scan each message we have, if it's id is in the list of successfully
@@ -174,7 +193,7 @@ Processor.prototype._fetch = function(numRecords, cb) {
         that._messages.push(message)
         // add into async.q, and upon finishing proccessing, setState to awaiting deletion
         that._q.push(message.Body, function(){
-          debug("MARKING FOR REAPING:", message.MessageId)
+          debug("MARKING MESSAGE FOR REAPING:", message.MessageId)
           message.state = "awaitingDeletion"
         })
       })
